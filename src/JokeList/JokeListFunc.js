@@ -1,27 +1,35 @@
-import React, { useEffect } from "react";
-import useGetJokes from "../hooks/useJokes";
+import React, { useState, useEffect } from "react";
+import useAxios from "../hooks/useAxios";
 import "../JokeList.css";
 import JokeFunc from "../Joke/JokeFunc";
 
 /** List of jokes. */
 
 const JokeListFunc = () => {
-    const { jokes, isLoading, getJokes, vote } = useGetJokes();
+    const [jokes, setJokes] = useState([]);
+    const { dataArray, isLoading, fetchDataAndUpdateState } = useAxios();
 
-    /* at mount, get jokes */
     useEffect(() => {
-        const fetchData = async () => {
-            await getJokes(5);
-        };
-        fetchData();
+        fetchDataAndUpdateState();
     }, []);
 
+    const handleClick = async () => {
+        setJokes([]);
+        await fetchDataAndUpdateState();
+        setJokes(dataArray);
+    };
 
-    // /* on jokes update, re-render */
-    // useEffect(() =>  console.log('Jokes updated:', jokes), [jokes]);
+    useEffect(() => {
+        setJokes(dataArray);
+    }, [dataArray]);
 
-    /* empty joke list, set to loading state, and then call getJokes */
-    const handleClick = () => getJokes(5);
+
+    /* change vote for this id by delta (+1 or -1) */
+    const vote = (id, delta) => {
+        setJokes(() => jokes.map(joke => {
+            return joke.id === id ? { ...joke, votes: joke.votes + delta } : joke
+        }))
+    }
 
     //sort jokes
     let sortedJokes = [...jokes].sort((a, b) => b.votes - a.votes);
